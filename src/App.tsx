@@ -9,17 +9,35 @@ import {
   Settings, 
   LogOut, 
   Bell, 
+  HelpCircle,
+  Database,
+  HelpCircle as HelpIcon,
+  MessageSquare,
+  ChevronDown,
   Search,
   GraduationCap,
   BookOpen,
   UserCircle,
   TrendingUp,
   Cpu,
-  Boxes
+  Boxes,
+  MapPin,
+  Clock,
+  AlertCircle,
+  Award,
+  PieChart,
+  Printer
 } from 'lucide-react';
 import { EnrollmentChart } from './components/EnrollmentChart';
 import { LogisticsModule } from './components/LogisticsModule';
 import { ExamSchedulingModule } from './components/ExamSchedulingModule';
+import { StudentDirectory } from './components/StudentDirectory';
+import { GradingCenter } from './components/GradingCenter';
+import { StudentResults } from './components/StudentResults';
+import { FinancialsModule } from './components/FinancialsModule';
+import { PrintingPipeline } from './components/PrintingPipeline';
+import { ExamApprovalTracker } from './components/ExamApprovalTracker';
+import { ExamPaperCreator } from './components/ExamPaperCreator';
 
 // Types
 type UserRole = 'admin' | 'professor' | 'student' | null;
@@ -37,6 +55,8 @@ type ViewType =
   | 'results' 
   | 'library' 
   | 'fees' 
+  | 'printing-pipeline' 
+  | 'approval-tracker' 
   | 'settings';
 
 interface AuthContextType {
@@ -114,7 +134,11 @@ const DashboardLayout = ({ children, activeView, setView }: { children: React.Re
         { category: 'Institutional', items: [
           { name: 'Overview', id: 'dashboard', icon: LayoutDashboard },
           { name: 'Logistics', id: 'logistics', icon: Package },
-          { name: 'Exams', id: 'exams', icon: Calendar },
+          { name: 'Exam Planner', id: 'exams', icon: Calendar },
+        ]},
+        { category: 'Examination Pipeline', items: [
+          { name: 'Approval Registry', id: 'approval-tracker', icon: AlertCircle },
+          { name: 'Printing & Packaging', id: 'printing-pipeline', icon: Printer },
         ]},
         { category: 'People', items: [
           { name: 'Students', id: 'students', icon: Users },
@@ -129,18 +153,12 @@ const DashboardLayout = ({ children, activeView, setView }: { children: React.Re
     }
     if (role === 'professor') {
       return [
-        { category: 'Teaching Hub', items: [
-          { name: 'Teaching Hub', id: 'dashboard', icon: LayoutDashboard },
-          { name: 'Course Management', id: 'courses', icon: BookOpen },
-          { name: 'Grading', id: 'grading', icon: GraduationCap },
-        ]},
-        { category: 'Assessment', items: [
-          { name: 'Exam Creator', id: 'exam-creator', icon: Calendar },
-          { name: 'Results Center', id: 'results', icon: TrendingUp },
-        ]},
-        { category: 'Misc', items: [
-          { name: 'Logistics Request', id: 'logistics', icon: Package },
-          { name: 'Profile Settings', id: 'settings', icon: Settings },
+        { category: 'Main Menu', items: [
+          { name: 'My Courses', id: 'courses', icon: BookOpen },
+          { name: 'Question Bank', id: 'grading', icon: Database }, // Using grading id for now or mapping it
+          { name: 'Exam Workspace', id: 'exam-creator', icon: Calendar },
+          { name: 'Analytics', id: 'results', icon: TrendingUp },
+          { name: 'Help', id: 'settings', icon: HelpIcon },
         ]}
       ];
     }
@@ -163,52 +181,87 @@ const DashboardLayout = ({ children, activeView, setView }: { children: React.Re
 
   const navCategories = getNavItems();
 
+  const [selectedCourse] = useState('CS402: Artificial Intelligence & Ethics');
+
+  const getProfileData = () => {
+    switch (role) {
+      case 'admin':
+        return {
+          name: 'Institutional Admin',
+          role: 'System Controller',
+          img: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80'
+        };
+      case 'professor':
+        return {
+          name: 'Dr. Julian Vane',
+          role: 'Senior Faculty',
+          img: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80'
+        };
+      case 'student':
+        return {
+          name: 'Alexander Wright',
+          role: 'Computer Science',
+          img: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80'
+        };
+      default:
+        return {
+          name: 'Guest User',
+          role: 'Visitor',
+          img: ''
+        };
+    }
+  };
+
+  const profile = getProfileData();
+
   return (
     <div className="flex h-screen bg-[#F1F5F9] font-sans text-slate-800 overflow-hidden">
       {/* Sidebar */}
-      <aside className="w-64 bg-[#0F172A] flex flex-col shrink-0 border-r border-slate-800">
+      <aside className={`w-64 flex flex-col shrink-0 border-r ${role === 'professor' ? 'bg-[#1E3A3A] border-[#2A4F4F]' : 'bg-[#0F172A] border-slate-800'}`}>
         <div className="p-8">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
-              <GraduationCap className="text-white w-6 h-6" />
-            </div>
-            <span className="text-white font-bold text-xl tracking-tight font-display">EDUADMIN</span>
+          <div className="flex flex-col gap-1">
+            <span className="text-white font-black text-2xl tracking-tight font-display">EduAdmin ERP</span>
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{role} Portal</span>
           </div>
         </div>
         
         <nav className="flex-1 px-4 space-y-4 overflow-y-auto custom-scrollbar pb-8">
           {navCategories.map((cat) => (
             <div key={cat.category} className="space-y-1.5">
-              <div className="px-4 py-1 text-[10px] font-bold text-slate-500 uppercase tracking-widest">{cat.category}</div>
+              {role !== 'professor' && <div className="px-4 py-1 text-[10px] font-bold text-slate-500 uppercase tracking-widest">{cat.category}</div>}
               {cat.items.map((item) => (
                 <button 
-                  key={item.id} 
-                  onClick={() => setView(item.id as ViewType)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all group ${
-                    activeView === item.id 
-                    ? 'bg-white/10 text-white shadow-sm' 
-                    : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
-                  }`}
+                   key={item.id} 
+                   onClick={() => setView(item.id as ViewType)}
+                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all group ${
+                     activeView === item.id 
+                     ? (role === 'professor' ? 'bg-white text-[#1E3A3A] shadow-lg' : 'bg-white/10 text-white shadow-sm') 
+                     : 'text-slate-400 hover:text-white hover:bg-white/5'
+                   }`}
                 >
-                  <item.icon className={`w-4 h-4 ${activeView === item.id ? 'text-blue-400' : 'text-slate-500 group-hover:text-slate-300'}`} />
-                  <span className="text-sm">{item.name}</span>
-                  {activeView === item.id && (
-                    <div className="ml-auto w-1.5 h-1.5 bg-blue-400 rounded-full"></div>
-                  )}
+                   <item.icon className={`w-4 h-4 ${activeView === item.id ? (role === 'professor' ? 'text-[#1E3A3A]' : 'text-blue-400') : 'text-slate-500 group-hover:text-slate-300'}`} />
+                   <span className="text-sm font-bold">{item.name}</span>
+                   {activeView === item.id && role !== 'professor' && (
+                     <div className="ml-auto w-1.5 h-1.5 bg-blue-400 rounded-full"></div>
+                   )}
                 </button>
               ))}
             </div>
           ))}
         </nav>
         
-        <div className="p-6 mt-auto border-t border-slate-800">
-          <div className="bg-slate-800/50 p-4 rounded-xl flex items-center gap-3 mb-4">
-            <div className="w-8 h-8 rounded-full bg-slate-700 border border-slate-600 flex items-center justify-center font-bold text-[10px] text-slate-100">
-              {role?.charAt(0).toUpperCase()}
+        <div className={`p-6 mt-auto border-t ${role === 'professor' ? 'border-[#2A4F4F]' : 'border-slate-800'}`}>
+          <div className={`${role === 'professor' ? 'bg-white/5' : 'bg-slate-800/50'} p-4 rounded-2xl flex items-center gap-3 mb-4 border border-white/5`}>
+            <div className="w-10 h-10 rounded-xl bg-slate-700/50 border border-white/10 flex items-center justify-center overflow-hidden">
+               {profile.img ? (
+                 <img src={profile.img} alt="Profile" className="w-full h-full object-cover" />
+               ) : (
+                 <UserCircle className="w-6 h-6 text-slate-400" />
+               )}
             </div>
             <div className="flex flex-col overflow-hidden">
-              <span className="text-xs font-bold text-white truncate capitalize">{role} Portal</span>
-              <span className="text-[10px] text-slate-500">Academic Access</span>
+              <span className="text-[11px] font-black text-white truncate font-display">{profile.name}</span>
+              <span className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">{profile.role}</span>
             </div>
           </div>
           <button 
@@ -225,29 +278,31 @@ const DashboardLayout = ({ children, activeView, setView }: { children: React.Re
       <main className="flex-1 flex flex-col min-w-0 h-full">
         <header className="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-10 shrink-0">
           <div className="flex flex-col">
-            <h1 className="text-xl font-bold text-slate-900 capitalize font-display tracking-tight">
-              {activeView === 'dashboard' ? (role === 'admin' ? 'University Overview' : role === 'professor' ? 'Teaching Hub' : 'Student Portal') : activeView.replace('-', ' ')}
+            <h1 className="text-xl font-black text-slate-900 font-display tracking-tight">
+              Academic Portal
             </h1>
-            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">
-              {role} portal &bull; {activeView === 'dashboard' ? 'Performance Analytics' : 'Management Engine'}
-            </p>
           </div>
+
+          {role === 'professor' && (
+             <div className="flex-1 flex justify-center px-8">
+                <button className="flex items-center gap-3 bg-slate-100 px-6 py-2.5 rounded-xl border border-slate-200 text-sm font-bold text-slate-700 hover:bg-slate-200 transition-all">
+                   {selectedCourse}
+                   <ChevronDown className="w-4 h-4 text-slate-400" />
+                </button>
+             </div>
+          )}
           
           <div className="flex items-center gap-6">
-            <div className="flex bg-slate-100 p-1 rounded-lg shrink-0 hidden md:flex">
-              <button className="px-4 py-1.5 text-xs font-semibold bg-white rounded-md shadow-sm">Real-time</button>
-              <button className="px-4 py-1.5 text-xs font-semibold text-slate-500">Historical</button>
-            </div>
-            
-            <div className="w-px h-6 bg-slate-200"></div>
-
             <div className="flex items-center gap-4">
-              <button className="p-2 text-slate-400 hover:text-slate-600 transition-colors">
+              <button className="p-2 text-slate-400 hover:text-slate-600 transition-colors relative">
                 <Bell className="w-5 h-5" />
+                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
               </button>
-              <button className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-semibold text-sm transition-all shadow-md shadow-blue-600/10 flex items-center gap-2">
-                <TrendingUp className="w-4 h-4" />
-                Performance Report
+              <button className="p-2 text-slate-400 hover:text-slate-600 transition-colors">
+                <HelpCircle className="w-5 h-5" />
+              </button>
+              <button className="bg-[#0F172A] text-white px-5 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all shadow-md hover:bg-slate-800">
+                Profile
               </button>
             </div>
           </div>
@@ -372,26 +427,54 @@ export default function App() {
   const renderContent = () => {
     // Shared / Core modules
     if (activeView === 'logistics') return <LogisticsModule />;
-    if (activeView === 'exams' || activeView === 'exam-creator') return <ExamSchedulingModule />;
+    if (activeView === 'exams') return <ExamSchedulingModule />;
+    if (activeView === 'financials') return <FinancialsModule />;
+    if (activeView === 'printing-pipeline') return <PrintingPipeline />;
+    if (activeView === 'approval-tracker') return <ExamApprovalTracker />;
+    if (activeView === 'exam-creator') return <ExamPaperCreator />;
 
     // Admin Specific Views
     if (role === 'admin') {
       if (activeView === 'dashboard') return <AdminDashboard />;
-      if (activeView === 'students') return (
+      if (activeView === 'students') return <StudentDirectory />;
+      if (activeView === 'faculty') return (
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
           <div className="px-8 py-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
             <div>
-              <h3 className="font-bold text-slate-900 font-display">Student Directory</h3>
-              <p className="text-xs text-slate-500 mt-0.5">Manage 12,482 active academic records</p>
+              <h3 className="font-bold text-slate-900 font-display">Faculty Management</h3>
+              <p className="text-xs text-slate-500 mt-0.5">Academic staff assignments and credentials</p>
             </div>
-            <button className="bg-blue-600 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-md shadow-blue-500/20 hover:bg-blue-700 transition-all">+ Add New Student</button>
+            <button className="bg-blue-600 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-md shadow-blue-500/20 hover:bg-blue-700 transition-all">+ Add Faculty</button>
           </div>
-          <div className="p-20 text-center flex flex-col items-center">
-            <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mb-4">
-              <Users className="w-8 h-8 text-slate-400" />
+          <div className="p-8 space-y-4">
+            {[1, 2, 3].map(i => (
+              <div key={i} className="flex items-center gap-6 p-6 border border-slate-100 rounded-2xl group hover:border-blue-200 transition-all cursor-pointer">
+                 <div className="w-14 h-14 bg-slate-100 rounded-full flex items-center justify-center font-bold text-slate-400">P{i}</div>
+                 <div className="flex-1">
+                    <h4 className="font-bold text-slate-900 font-display">Prof. Jonathan Miller {i}</h4>
+                    <p className="text-xs text-slate-500 font-bold uppercase tracking-widest mt-1">Senior Researcher &bull; Engineering</p>
+                 </div>
+                 <div className="flex gap-2">
+                    <button className="px-3 py-1.5 bg-slate-100 rounded-lg text-[10px] font-bold text-slate-500 hover:bg-slate-200">PROFILE</button>
+                    <button className="px-3 py-1.5 bg-blue-600 rounded-lg text-[10px] font-bold text-white hover:bg-blue-700">EDIT</button>
+                 </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+      if (activeView === 'analytics') return (
+        <div className="space-y-8 h-full flex flex-col">
+           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col flex-1">
+            <div className="px-8 py-6 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
+              <h3 className="font-bold text-slate-900 font-display">Predictive Enrollment Analytics</h3>
+              <div className="flex gap-2">
+                 <button className="px-3 py-1 border border-slate-200 rounded-lg text-[10px] font-bold uppercase tracking-widest">Q4 2026</button>
+              </div>
             </div>
-            <h4 className="text-lg font-bold text-slate-900">Directory Initialized</h4>
-            <p className="text-sm text-slate-500 mt-1 max-w-sm">The student verification engine is processing records for the new semester.</p>
+            <div className="p-8 flex-1 min-h-[400px]">
+              <EnrollmentChart />
+            </div>
           </div>
         </div>
       );
@@ -415,7 +498,7 @@ export default function App() {
             </div>
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div className="dashboard-card">
+            <div className="dashboard-card border border-slate-200 shadow-sm">
               <h3 className="font-bold text-slate-900 mb-6 font-display">Teaching Schedule</h3>
               <div className="space-y-6">
                 {[
@@ -433,7 +516,7 @@ export default function App() {
                 ))}
               </div>
             </div>
-            <div className="dashboard-card bg-[#0F172A] text-white">
+            <div className="dashboard-card bg-[#0F172A] text-white border-none shadow-xl shadow-slate-900/10">
                <h3 className="font-bold mb-6 font-display">Grading Overview</h3>
                <div className="flex-1 flex flex-col justify-between h-full min-h-[220px]">
                   <div className="space-y-6">
@@ -445,7 +528,7 @@ export default function App() {
                         <div className="bg-blue-500 h-full w-[92%] transition-all"></div>
                      </div>
                   </div>
-                  <button className="w-full py-4 bg-white text-[#0F172A] rounded-2xl font-black text-xs hover:bg-slate-100 transition-all shadow-xl shadow-blue-500/10" onClick={() => setActiveView('grading')}>OPEN GRADING HUB</button>
+                  <button className="w-full py-4 bg-white text-[#0F172A] rounded-2xl font-black text-xs hover:bg-slate-100 transition-all shadow-xl shadow-blue-500/10 uppercase tracking-widest" onClick={() => setActiveView('grading')}>OPEN GRADING HUB</button>
                </div>
             </div>
           </div>
@@ -477,36 +560,53 @@ export default function App() {
           </div>
         </div>
       );
-      if (activeView === 'grading') return (
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="px-8 py-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-            <div>
-              <h3 className="font-bold text-slate-900 font-display">Grading Center</h3>
-              <p className="text-xs text-slate-500 mt-0.5">Assessment and transcript management</p>
-            </div>
-            <button className="bg-blue-600 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-md shadow-blue-500/20">Finalize Grades</button>
+      if (activeView === 'grading') return <GradingCenter />;
+      if (activeView === 'results') return (
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden h-full flex flex-col">
+           <div className="px-8 py-6 border-b border-slate-100 bg-slate-50/50">
+            <h3 className="font-bold text-slate-900 font-display">Department Results Center</h3>
           </div>
-          <div className="p-20 text-center flex flex-col items-center">
-            <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mb-4">
-              <GraduationCap className="w-8 h-8 text-slate-300" />
-            </div>
-            <h4 className="text-lg font-bold text-slate-900 tracking-tight font-display">No Pending Submissions</h4>
-            <p className="text-sm text-slate-500 mt-1 max-w-sm">All student submissions for the current week have been processed and synchronized.</p>
+          <div className="p-10 flex-1 flex flex-col">
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                <div className="p-8 bg-slate-50 rounded-3xl border border-slate-100">
+                   <h4 className="font-bold text-slate-400 text-[10px] uppercase tracking-widest mb-4">Passing Rate</h4>
+                   <div className="flex items-end gap-3">
+                      <span className="text-5xl font-black text-slate-900 font-display tracking-tight">98.2%</span>
+                      <TrendingUp className="text-emerald-500 w-6 h-6 mb-2" />
+                   </div>
+                </div>
+                <div className="p-8 bg-slate-50 rounded-3xl border border-slate-100">
+                   <h4 className="font-bold text-slate-400 text-[10px] uppercase tracking-widest mb-4">Distinction Count</h4>
+                   <div className="flex items-end gap-3">
+                      <span className="text-5xl font-black text-slate-900 font-display tracking-tight">142</span>
+                      <Award className="text-blue-500 w-6 h-6 mb-2" />
+                   </div>
+                </div>
+             </div>
+             <div className="flex-1 bg-slate-50 rounded-3xl border border-slate-100 flex items-center justify-center">
+                <div className="text-center">
+                   <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm">
+                      <PieChart className="w-8 h-8 text-slate-300" />
+                   </div>
+                   <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">Department Performance Matrix Loading...</p>
+                </div>
+             </div>
           </div>
         </div>
       );
     }
 
+    // Student Specific Views
     if (role === 'student') {
       if (activeView === 'dashboard') return (
         <div className="space-y-6 text-center lg:text-left">
-          <div className="bg-gradient-to-br from-primary-600 via-primary-700 to-indigo-900 p-12 rounded-[2.5rem] text-white shadow-2xl shadow-primary-100 relative overflow-hidden">
+          <div className="bg-gradient-to-br from-blue-600 via-indigo-700 to-slate-900 p-12 rounded-[2.5rem] text-white shadow-2xl shadow-blue-100 relative overflow-hidden">
             <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-20 -mt-20"></div>
             <h1 className="text-4xl font-display font-black mb-2 relative z-10">Hello, Alexander!</h1>
-            <p className="text-primary-100 font-medium opacity-90 max-w-md text-lg relative z-10">Your research paper "Modern Web Systems" was graded <span className="text-white font-black underline decoration-amber-400 underline-offset-4">A+</span> by Prof. Smith.</p>
+            <p className="text-blue-100 font-medium opacity-90 max-w-md text-lg relative z-10">Your research paper "Modern Web Systems" was graded <span className="text-white font-black underline decoration-amber-400 underline-offset-4">A+</span> by Prof. Smith.</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="dashboard-card border-none shadow-xl shadow-slate-100">
+            <div className="dashboard-card border border-slate-200 shadow-sm">
               <h3 className="text-xl font-display font-black mb-6">Upcoming Classes</h3>
               <div className="space-y-6 text-left">
                 {[
@@ -514,12 +614,12 @@ export default function App() {
                   { day: 'FRI', date: '27', title: 'Network Security', time: '02:00 PM', room: 'Lab 3', color: 'bg-emerald-500' },
                 ].map((c, i) => (
                   <div key={i} className="flex gap-4 items-center group cursor-pointer">
-                    <div className="text-center bg-slate-50 px-4 py-3 rounded-2xl min-w-[80px] group-hover:bg-primary-50 transition-colors">
+                    <div className="text-center bg-slate-50 px-4 py-3 rounded-2xl min-w-[80px] group-hover:bg-blue-50 transition-colors">
                       <p className="text-xs font-black text-slate-400 uppercase tracking-widest">{c.day}</p>
                       <p className="text-2xl font-black text-slate-900 font-display">{c.date}</p>
                     </div>
                     <div className="flex-1">
-                      <p className="text-base font-bold text-slate-900 group-hover:text-primary-600 transition-colors font-display tracking-tight">{c.title}</p>
+                      <p className="text-base font-bold text-slate-900 group-hover:text-blue-600 transition-colors font-display tracking-tight">{c.title}</p>
                       <p className="text-xs text-slate-500 font-semibold">{c.time} &bull; Room {c.room}</p>
                     </div>
                     <div className={`w-2 h-10 rounded-full ${c.color} opacity-20`}></div>
@@ -527,7 +627,7 @@ export default function App() {
                 ))}
               </div>
             </div>
-            <div className="dashboard-card border-none shadow-xl shadow-slate-100">
+            <div className="dashboard-card border border-slate-200 shadow-sm bg-amber-50/30">
               <h3 className="text-xl font-display font-black mb-6">Academic Alerts</h3>
               <div className="p-8 bg-amber-50 rounded-3xl border border-amber-100/50 relative overflow-hidden group hover:shadow-2xl hover:shadow-amber-100 transition-all">
                 <div className="absolute -right-4 -bottom-4 opacity-5 group-hover:scale-110 transition-transform">
@@ -536,13 +636,72 @@ export default function App() {
                 <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-lg shadow-amber-200/50 mb-6">
                   <Calendar className="text-amber-600 w-6 h-6" />
                 </div>
-                <p className="text-lg font-display font-black text-amber-900 tracking-tight">Final Semester Finals</p>
+                <p className="text-lg font-display font-black text-amber-900 tracking-tight">Semester Finals</p>
                 <p className="text-sm text-amber-700 font-medium mt-2 leading-relaxed">Starting in <span className="font-black">12 days</span>. Your study resources have been updated in the library.</p>
-                <button className="mt-6 text-sm font-black text-amber-600 hover:translate-x-1 transition-transform inline-flex items-center gap-2">
+                <button 
+                  onClick={() => setActiveView('exams')}
+                  className="mt-6 text-sm font-black text-amber-600 hover:translate-x-1 transition-transform inline-flex items-center gap-2"
+                >
                   VIEW SCHEDULE &rarr;
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+      );
+      if (activeView === 'results') return <StudentResults />;
+      if (activeView === 'financials') return <FinancialsModule />;
+      if (activeView === 'courses') return (
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="px-8 py-6 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
+            <h3 className="font-bold text-slate-900 font-display">My Learning Path</h3>
+            <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-3 py-1 rounded-full uppercase tracking-widest">DEGREE: CS HONORS</span>
+          </div>
+          <div className="p-10 space-y-8">
+            {[
+              { year: 'Final Year', sem: 'Semester 7', active: true, progress: 85 },
+              { year: 'Third Year', sem: 'Semester 6', active: false, progress: 100 },
+              { year: 'Second Year', sem: 'Semester 4', active: false, progress: 100 },
+            ].map((p, i) => (
+              <div key={i} className={`p-8 rounded-3xl border ${p.active ? 'border-blue-200 bg-blue-50/30' : 'border-slate-100 bg-slate-50 opacity-60'} flex justify-between items-center`}>
+                 <div className="space-y-1">
+                   <h4 className="font-bold text-slate-900 text-lg font-display">{p.year}</h4>
+                   <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">{p.sem}</p>
+                 </div>
+                 <div className="flex items-center gap-8">
+                    <div className="w-48 text-right">
+                       <p className="text-[10px] font-bold text-slate-400 mb-1.5 uppercase">Completion</p>
+                       <div className="w-full bg-slate-200 h-1 rounded-full overflow-hidden">
+                          <div className="bg-blue-600 h-full" style={{ width: `${p.progress}%` }}></div>
+                       </div>
+                    </div>
+                    <button className={`px-5 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                      p.active ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'bg-slate-200 text-slate-500'
+                    }`}>VIEW MODULES</button>
+                 </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+      if (activeView === 'library') return (
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col h-full">
+           <div className="px-8 py-6 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
+            <h3 className="font-bold text-slate-900 font-display">Campus Digital Library</h3>
+            <div className="flex gap-2">
+               <input type="text" placeholder="Global search..." className="px-4 py-2 border border-slate-200 rounded-xl text-xs outline-none focus:ring-2 ring-blue-500/20" />
+            </div>
+          </div>
+          <div className="p-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+             {[1, 2, 3, 4, 5, 6].map(i => (
+               <div key={i} className="p-6 border border-slate-100 rounded-2xl group hover:border-blue-200 hover:shadow-xl hover:shadow-slate-100 transition-all cursor-pointer">
+                  <div className="w-full aspect-[3/4] bg-slate-100 rounded-xl mb-4 flex items-center justify-center">
+                     <BookOpen className="w-12 h-12 text-slate-300" />
+                  </div>
+                  <h4 className="font-bold text-slate-900 font-display tracking-tight">Resource Volume {i}</h4>
+                  <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">Institutional Archive &bull; PDF</p>
+               </div>
+             ))}
           </div>
         </div>
       );
